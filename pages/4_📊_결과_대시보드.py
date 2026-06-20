@@ -205,15 +205,60 @@ if has_labels:
     st.divider()
     st.subheader("🏷️ 지도 평가지표 (라벨 사용)")
 
+    # ── 라벨 매칭 진단 (보강 OFF 기준)
+    raw_scores, raw_labels = align_scores_labels(
+        scores_df["time"].values, scores_df["score"].values, labels_df,
+        fill_unlabeled_as_normal=False,
+    )
+    n_score_pts = int(np.sum(~np.isnan(scores_df["score"].values)))
+    n_label_pts = int(len(labels_df))
+    n_matched = int(len(raw_scores))
+    n_pos_in_labels = int(labels_df["label"].sum())
+    sparse_label = n_pos_in_labels == n_label_pts  # 모두 1만 들어있는 sparse 컨벤션
+
+    c_info1, c_info2, c_info3, c_info4 = st.columns(4)
+    c_info1.metric("점수 시점 수", f"{n_score_pts:,}")
+    c_info2.metric("라벨 시점 수", f"{n_label_pts:,}")
+    c_info3.metric("매칭(공통) 시점", f"{n_matched:,}")
+    c_info4.metric("라벨 양성 수", f"{n_pos_in_labels:,}")
+
+    # ── 보강 옵션
+    default_fill = sparse_label or (
+        n_matched > 0 and len(np.unique(raw_labels)) < 2
+    )
+    fill_unlabeled = st.checkbox(
+        "🔧 라벨이 없는 시점을 정상(0)으로 자동 보강",
+        value=default_fill,
+        help=(
+            "시계열 이상탐지 데이터셋(NAB, Yahoo S5 등)은 보통 '이상 시점'만 sparse 하게 기록합니다. "
+            "이 옵션을 켜면 라벨 CSV에 없는 점수 시점을 모두 정상(0)으로 채워 양/음 클래스를 모두 만듭니다."
+        ),
+    )
+    if default_fill and fill_unlabeled:
+        st.caption(
+            "💡 라벨 CSV가 sparse(이상 시점만 포함)로 감지되어 자동 보강을 기본 활성화했습니다."
+        )
+
     aligned_scores, aligned_labels = align_scores_labels(
         scores_df["time"].values, scores_df["score"].values, labels_df,
+        fill_unlabeled_as_normal=fill_unlabeled,
     )
 
     if len(aligned_scores) == 0:
-        st.warning("점수 시점과 라벨 시점이 겹치지 않습니다.")
-    elif len(np.unique(aligned_labels)) < 2:
-        st.warning("정상/이상 라벨이 모두 존재해야 평가가 가능합니다.")
+        st.warning(
+            "점수 시점과 라벨 시점이 겹치지 않습니다. "
+            "라벨 CSV의 시간 컬럼/주파수가 점수와 일치하는지 확인하거나, "
+            "위 '자동 보강' 옵션을 켜보세요."
+        )
     else:
+        n_classes = len(np.unique(aligned_labels))
+        if n_classes < 2:
+            st.warning(
+                f"정렬된 라벨이 단일 클래스({int(aligned_labels[0])})만 포함합니다. "
+                "AUC-ROC / AUC-PR 등 순위 기반 지표는 의미 없으므로 임계값 기반 지표(Precision/Recall/F1)만 표시합니다. "
+                "위 '🔧 라벨이 없는 시점을 정상(0)으로 자동 보강' 옵션을 켜면 정상/이상이 모두 생겨 전체 지표를 계산할 수 있습니다."
+            )
+
         metrics = supervised_metrics(aligned_scores, aligned_labels, threshold)
         m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric("AUC-ROC", metrics.get("AUC-ROC", "—"))
@@ -222,16 +267,25 @@ if has_labels:
         m4.metric("Recall", metrics.get("Recall", "—"))
         m5.metric("F1", metrics.get("F1", "—"))
 
-        c_roc, c_pr, c_cm = st.columns(3)
-        with c_roc:
-            st.plotly_chart(plot_roc_curve(aligned_scores, aligned_labels), use_container_width=True)
-        with c_pr:
-            st.plotly_chart(plot_pr_curve(aligned_scores, aligned_labels), use_container_width=True)
-        with c_cm:
+        # 단일 클래스면 ROC/PR 곡선은 의미 없으므로 confusion matrix만 크게
+        if n_classes >= 2:
+            c_roc, c_pr, c_cm = st.columns(3)
+            with c_roc:
+                st.plotly_chart(plot_roc_curve(aligned_scores, aligned_labels),
+                                use_container_width=True)
+            with c_pr:
+                st.plotly_chart(plot_pr_curve(aligned_scores, aligned_labels),
+                                use_container_width=True)
+            with c_cm:
+                cm = metrics.get("confusion_matrix")
+                if cm is not None:
+                    st.plotly_chart(plot_confusion_matrix(cm), use_container_width=True)
+        else:
             cm = metrics.get("confusion_matrix")
             if cm is not None:
                 st.plotly_chart(plot_confusion_matrix(cm), use_container_width=True)
 else:
+    fill_unlabeled = False
     st.info("라벨 데이터가 없으면 비지도 지표만 표시됩니다. 페이지 1에서 라벨 CSV를 등록하면 지도 평가지표가 자동 활성화됩니다.")
 
 
@@ -256,9 +310,12 @@ if len(scorer_names) > 1:
     score_arrays = {n: scores_to_dataframe(scores[n])["score"].values for n in scorer_names}
     labels_arr = None
     if has_labels:
-        # 첫 scorer 기준으로 라벨 정렬
+        # 첫 scorer 기준으로 라벨 정렬 (위에서 켠 보강 옵션 반영)
         base = scores_to_dataframe(scores[scorer_names[0]])
-        _, labels_arr = align_scores_labels(base["time"].values, base["score"].values, labels_df)
+        _, labels_arr = align_scores_labels(
+            base["time"].values, base["score"].values, labels_df,
+            fill_unlabeled_as_normal=fill_unlabeled,
+        )
     cmp_table = compare_scorers_table(score_arrays, labels_arr, threshold)
     st.dataframe(cmp_table, use_container_width=True, hide_index=True)
     if has_labels and "AUC-ROC" in cmp_table.columns:

@@ -75,16 +75,29 @@ multivariate_mode = mode_map[mode_label]
 st.subheader("🤖 예측 모형 + 이상 점수 산출기")
 
 
-# statsforecast 미설치 환경(예: 배포 환경)에서는 AutoARIMA를 안전하게 제외
-def _statsforecast_available() -> bool:
+# statsforecast 미설치 / darts 측 호환 불가 환경에서는 AutoARIMA를 안전하게 제외
+def _autoarima_available() -> bool:
+    """Darts AutoARIMA를 실제로 인스턴스화할 수 있는지 검증.
+
+    1) `statsforecast` 패키지 import 가능 여부
+    2) `darts.models.AutoARIMA`가 NotImportedModule stub이 아닌지 (`usable != False`)
+    둘 다 통과해야 사용 가능으로 판정한다.
+    """
     try:
         import statsforecast  # noqa: F401
-        return True
     except Exception:
         return False
+    try:
+        from darts.models import AutoARIMA as _DartsAutoARIMA
+    except Exception:
+        return False
+    # darts는 import 실패 시 클래스 속성 `usable=False`인 stub을 등록한다.
+    if getattr(_DartsAutoARIMA, "usable", True) is False:
+        return False
+    return True
 
 
-_HAS_SF = _statsforecast_available()
+_HAS_SF = _autoarima_available()
 
 _MODEL_OPTIONS = [
     "LinearRegression",
@@ -97,8 +110,9 @@ if _HAS_SF:
     _MODEL_OPTIONS.append("AutoARIMA")
 else:
     st.info(
-        "ℹ️ `statsforecast` 패키지가 설치되지 않아 **AutoARIMA** 옵션은 비활성화되었습니다. "
-        "사용하려면 `pip install statsforecast` 또는 `requirements.txt` 에 추가 후 재배포하세요."
+        "ℹ️ 현재 환경에서 **AutoARIMA** 를 사용할 수 없어 옵션에서 제외되었습니다. "
+        "`statsforecast` 패키지가 미설치이거나, Darts와 호환되지 않을 수 있습니다. "
+        "사용하려면 `pip install -U statsforecast darts` 또는 `requirements.txt` 에 명시 후 재배포하세요."
     )
 
 c3, c4 = st.columns(2)

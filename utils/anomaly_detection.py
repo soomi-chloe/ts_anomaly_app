@@ -60,8 +60,8 @@ def create_forecasting_model(model_name: str, params: Dict):
 
     if name in ("autoarima", "arima"):
         # Darts의 AutoARIMA는 statsforecast의 lazy import에 의존합니다.
-        # 미설치 시 darts는 NotImportedModule stub을 반환해 호출 시점에
-        # "The StatsForecast module could not be imported." ImportError를 던집니다.
+        # 미설치 / 호환성 문제 시 darts는 NotImportedModule stub을 반환해
+        # 호출 시점에 "The StatsForecast module could not be imported." ImportError를 던집니다.
         # 더 친절한 메시지로 사전 차단합니다.
         try:
             import statsforecast  # noqa: F401
@@ -72,13 +72,35 @@ def create_forecasting_model(model_name: str, params: Dict):
                 "`pip install statsforecast` 로 설치하세요. "
                 f"(원인: {e})"
             ) from e
-        from darts.models import AutoARIMA
-        model = AutoARIMA()
-        # darts가 stub을 돌려주었는지 한 번 더 검증
+
+        from darts.models import AutoARIMA as _DartsAutoARIMA
+
+        # 호출 전에 NotImportedModule stub 여부 검증
+        # (darts는 import 실패 시 클래스 속성 `usable=False` 인 stub을 등록)
+        if getattr(_DartsAutoARIMA, "usable", True) is False:
+            raise ImportError(
+                "Darts가 StatsForecast 모듈을 import 하지 못했습니다. "
+                "현재 Python 환경에서 darts ↔ statsforecast 호환성 문제일 수 있습니다. "
+                "다른 모형(LinearRegression / XGBoost / ExponentialSmoothing 등)을 "
+                "선택하거나, `pip install -U statsforecast darts` 후 재배포하세요."
+            )
+
+        try:
+            model = _DartsAutoARIMA()
+        except ImportError as e:
+            # 안전망: 호출 시점에 stub 가드가 트리거된 경우
+            raise ImportError(
+                "Darts AutoARIMA 인스턴스 생성에 실패했습니다. "
+                "statsforecast 호환성 문제일 가능성이 큽니다. "
+                "다른 모형을 선택하거나, statsforecast / darts 버전을 점검하세요. "
+                f"(원인: {e})"
+            ) from e
+
+        # 인스턴스 단에서도 한 번 더 검증
         if getattr(model, "usable", True) is False:
             raise ImportError(
                 "Darts가 StatsForecast 모듈을 import 하지 못했습니다. "
-                "statsforecast 설치 상태를 확인하세요."
+                "statsforecast 설치 / 호환성 상태를 확인하세요."
             )
         return model
 

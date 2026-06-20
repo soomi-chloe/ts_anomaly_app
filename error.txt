@@ -1,0 +1,25 @@
+ImportError: The `StatsForecast` module could not be imported. To enable StatsForecast support in Darts, follow the detailed instructions in the installation guide: https://github.com/unit8co/darts/blob/master/INSTALL.md
+Traceback:
+File "/mount/src/ts_anomaly_app/pages/3_⚙️_이상탐지_설정.py", line 161, in <module>
+    result = run_anomaly_detection(
+        ts_train=ts_train,
+    ...<4 lines>...
+        multivariate_mode=multivariate_mode,
+    )
+File "/mount/src/ts_anomaly_app/utils/anomaly_detection.py", line 190, in run_anomaly_detection
+    return _run_single(ts_train, ts_test, model_name, scorer_names, params,
+                       component_wise=component_wise)
+File "/mount/src/ts_anomaly_app/utils/anomaly_detection.py", line 206, in _run_single
+    sub = _run_single(ts_tr_c, ts_te_c, model_name, scorer_names, params,
+                      component_wise=False)
+File "/mount/src/ts_anomaly_app/utils/anomaly_detection.py", line 218, in _run_single
+    return _run_local_residual(ts_train, ts_test, model_name, scorer_names, params)
+File "/mount/src/ts_anomaly_app/utils/anomaly_detection.py", line 267, in _run_local_residual
+    fm = create_forecasting_model(model_name, params)
+File "/mount/src/ts_anomaly_app/utils/anomaly_detection.py", line 76, in create_forecasting_model
+    model = AutoARIMA()
+File "/home/adminuser/venv/lib/python3.14/site-packages/darts/utils/utils.py", line 73, in __call__
+    raise_log(ImportError(self.error_message), logger=logger)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/home/adminuser/venv/lib/python3.14/site-packages/darts/logging.py", line 132, in raise_log
+    raise exception
