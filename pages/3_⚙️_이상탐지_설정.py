@@ -74,18 +74,38 @@ multivariate_mode = mode_map[mode_label]
 
 st.subheader("🤖 예측 모형 + 이상 점수 산출기")
 
+
+# statsforecast 미설치 환경(예: 배포 환경)에서는 AutoARIMA를 안전하게 제외
+def _statsforecast_available() -> bool:
+    try:
+        import statsforecast  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
+_HAS_SF = _statsforecast_available()
+
+_MODEL_OPTIONS = [
+    "LinearRegression",
+    "Ridge",
+    "XGBoost",
+    "LightGBM",
+    "ExponentialSmoothing",
+]
+if _HAS_SF:
+    _MODEL_OPTIONS.append("AutoARIMA")
+else:
+    st.info(
+        "ℹ️ `statsforecast` 패키지가 설치되지 않아 **AutoARIMA** 옵션은 비활성화되었습니다. "
+        "사용하려면 `pip install statsforecast` 또는 `requirements.txt` 에 추가 후 재배포하세요."
+    )
+
 c3, c4 = st.columns(2)
 with c3:
     model_name = st.selectbox(
         "예측 모형",
-        options=[
-            "LinearRegression",
-            "Ridge",
-            "XGBoost",
-            "LightGBM",
-            "ExponentialSmoothing",
-            "AutoARIMA",
-        ],
+        options=_MODEL_OPTIONS,
         index=0,
         help="회귀/트리 계열은 다변량을 함께 학습하고 lag 기반 lookback을 사용합니다.",
     )

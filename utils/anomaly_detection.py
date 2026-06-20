@@ -59,8 +59,28 @@ def create_forecasting_model(model_name: str, params: Dict):
         return ExponentialSmoothing()
 
     if name in ("autoarima", "arima"):
+        # Darts의 AutoARIMA는 statsforecast의 lazy import에 의존합니다.
+        # 미설치 시 darts는 NotImportedModule stub을 반환해 호출 시점에
+        # "The StatsForecast module could not be imported." ImportError를 던집니다.
+        # 더 친절한 메시지로 사전 차단합니다.
+        try:
+            import statsforecast  # noqa: F401
+        except Exception as e:
+            raise ImportError(
+                "AutoARIMA를 사용하려면 statsforecast 패키지가 필요합니다. "
+                "requirements.txt에 `statsforecast>=1.7` 을 추가하거나 "
+                "`pip install statsforecast` 로 설치하세요. "
+                f"(원인: {e})"
+            ) from e
         from darts.models import AutoARIMA
-        return AutoARIMA()
+        model = AutoARIMA()
+        # darts가 stub을 돌려주었는지 한 번 더 검증
+        if getattr(model, "usable", True) is False:
+            raise ImportError(
+                "Darts가 StatsForecast 모듈을 import 하지 못했습니다. "
+                "statsforecast 설치 상태를 확인하세요."
+            )
+        return model
 
     # default
     from darts.models import LinearRegressionModel
