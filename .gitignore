@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# 벤치마크 산출물 (재생성 가능) — 결과 표와 리포트는 커밋하고 캐시만 제외
+benchmark/cache/
+benchmark/results/*.npz
+benchmark/results/*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
