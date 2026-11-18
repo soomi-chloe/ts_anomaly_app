@@ -1,0 +1,45 @@
+{
+  "timestamp": "2026-11-16 14:38:52",
+  "python": "3.13.12",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "git_commit": "5be9fbd",
+  "packages": {
+    "numpy": "2.5.5",
+    "pandas": "2.3.3",
+    "sklearn": "1.7.2",
+    "darts": "0.41.0",
+    "soundfile": "0.14.0"
+  },
+  "args": {
+    "data_root": "C:/Users/109so/data/mt_cutting_dataset",
+    "frame_ms": 50.0,
+    "hop_ms": 50.0,
+    "detectors": [
+      "energy_spindle",
+      "iforest",
+      "darts_linearregression_norm",
+      "darts_linearregression_kmeans"
+    ],
+    "chatter_detectors": [
+      "energy_spindle",
+      "flatness_spindle",
+      "iforest",
+      "darts_linearregression_norm",
+      "darts_linearregression_kmeans"
+    ],
+    "protocols": [
+      "grouped_cv",
+      "lab_to_industry",
+      "random_leaky",
+      "chatter_grouped_cv",
+      "chatter_random_leaky"
+    ],
+    "folds": 6,
+    "lags": 10,
+    "window": 10,
+    "quantile": 0.99,
+    "seed": 42,
+    "quick": false,
+    "max_experiments": null
+  }
+}

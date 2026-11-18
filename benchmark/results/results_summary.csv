@@ -1,0 +1,19 @@
+protocol,detector,auc_pr,auc_roc,f1,f1_oracle,event_recall,false_alarms_per_min,n_folds
+chatter_grouped_cv,darts_linearregression_kmeans,0.754 ± 0.166,0.792 ± 0.122,0.532 ± 0.231,0.760 ± 0.178,1.000 ± 0.000,42.186 ± 6.301,5
+chatter_grouped_cv,darts_linearregression_norm,0.713 ± 0.215,0.803 ± 0.085,0.478 ± 0.166,0.707 ± 0.234,1.000 ± 0.000,83.738 ± 13.218,5
+chatter_grouped_cv,energy_spindle,0.512 ± 0.298,0.542 ± 0.213,0.165 ± 0.321,0.644 ± 0.265,0.202 ± 0.281,9.874 ± 12.699,5
+chatter_grouped_cv,flatness_spindle,0.339 ± 0.291,0.218 ± 0.149,0.042 ± 0.023,0.516 ± 0.293,0.335 ± 0.138,9.760 ± 6.403,5
+chatter_grouped_cv,iforest,0.875 ± 0.087,0.939 ± 0.023,0.700 ± 0.131,0.834 ± 0.089,0.872 ± 0.059,10.973 ± 4.435,5
+chatter_random_leaky,energy_spindle,0.575,0.486,0.055,0.738,0.068,18.731,1
+chatter_random_leaky,flatness_spindle,0.451,0.214,0.036,0.737,0.044,8.459,1
+chatter_random_leaky,iforest,0.979,0.979,0.760,0.949,0.796,12.689,1
+grouped_cv,darts_linearregression_kmeans,0.842 ± 0.029,0.917 ± 0.013,0.732 ± 0.065,0.790 ± 0.050,0.908 ± 0.069,35.326 ± 13.258,6
+grouped_cv,darts_linearregression_norm,0.914 ± 0.012,0.959 ± 0.007,0.681 ± 0.175,0.860 ± 0.038,0.973 ± 0.038,26.499 ± 9.292,6
+grouped_cv,energy_spindle,0.880 ± 0.097,0.928 ± 0.053,0.432 ± 0.193,0.850 ± 0.062,0.484 ± 0.189,0.907 ± 1.823,6
+grouped_cv,iforest,0.995 ± 0.006,0.997 ± 0.003,0.957 ± 0.046,0.979 ± 0.016,1.000 ± 0.000,12.901 ± 8.387,6
+lab_to_industry,darts_linearregression_kmeans,0.353,0.342,0.159,0.620,0.357,14.216,1
+lab_to_industry,darts_linearregression_norm,0.371,0.386,0.059,0.614,0.429,61.496,1
+lab_to_industry,energy_spindle,0.557,0.618,0.000,0.638,0.000,0.000,1
+lab_to_industry,iforest,0.405,0.463,0.613,0.620,1.000,14.845,1
+random_leaky,energy_spindle,0.821,0.906,0.351,0.803,0.308,12.145,1
+random_leaky,iforest,0.993,0.996,0.957,0.963,0.957,12.486,1

@@ -1,0 +1,7 @@
+protocol,detector,auc_pr,auc_roc,f1,f1_oracle,event_recall,false_alarms_per_min,n_folds
+grouped_cv,darts_linearregression_norm,0.821 ± 0.035,0.903 ± 0.015,0.500 ± 0.101,0.785 ± 0.044,0.971 ± 0.019,26.026 ± 5.560,6
+grouped_cv,energy_spindle,0.862 ± 0.089,0.911 ± 0.055,0.375 ± 0.132,0.814 ± 0.060,0.278 ± 0.075,1.472 ± 2.765,6
+grouped_cv,iforest,0.978 ± 0.026,0.988 ± 0.014,0.780 ± 0.079,0.962 ± 0.028,0.920 ± 0.076,1.998 ± 1.864,6
+lab_to_industry,darts_linearregression_norm,0.349,0.368,0.216,0.615,0.929,96.399,1
+lab_to_industry,energy_spindle,0.557,0.618,0.365,0.638,0.786,80.825,1
+lab_to_industry,iforest,0.489,0.624,0.033,0.667,0.214,22.268,1
