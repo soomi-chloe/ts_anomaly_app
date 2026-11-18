@@ -1,3 +1,25 @@
+# Multivariate Time-Series Anomaly Detection: Streamlit app + industrial benchmark
+
+**English summary.** Upload a multivariate time-series CSV and the app runs EDA → preprocessing →
+forecasting-based anomaly detection (Darts `ForecastingAnomalyModel` with Norm/KMeans/Wasserstein scorers)
+→ an evaluation dashboard (AUC-ROC, AUC-PR, F1, confusion matrix, or unsupervised score statistics when no labels exist).
+
+The app was built for a smart-manufacturing / time-series course. To find out whether its detectors hold up
+on real industrial data, `benchmark/` evaluates the same model families on the public CNC milling sound dataset
+released by Purdue's LAMM lab ([purduelamm/mt_cutting_dataset](https://github.com/purduelamm/mt_cutting_dataset)):
+lab-vs-industry transfer, experiment-grouped cross-validation, a deliberately leaky split as a control, and a
+chatter-detection task. Every metric is implemented from its definition in `benchmark/metrics.py` and checked
+against scikit-learn in `tests/`. Results and a "where this analysis could be wrong" section are in
+[benchmark/REPORT.md](benchmark/REPORT.md).
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q                       # 43 tests: metrics vs scikit-learn, feature extraction, label conversion
+python -m benchmark.run_benchmark --quick # needs the dataset, see benchmark/README.md
+```
+
+---
+
 # 🚨 시계열 이상탐지 자동화 웹앱
 
 다변량 시계열 CSV를 업로드하면 **EDA → 전처리 → Darts 기반 이상탐지 → 평가 대시보드**까지
@@ -5,6 +27,7 @@
 
 > 과목: 스마트제조 / 시계열 분석
 > 핵심 라이브러리: Streamlit, Darts, pandas, plotly, scikit-learn
+> 검증: `benchmark/` 에서 Purdue LAMM 공개 절삭음 데이터로 벤치마크, `tests/` 에서 지표 구현을 scikit-learn 과 대조
 
 ---
 
@@ -24,6 +47,12 @@ ts_anomaly_app/
 │   ├── preprocessing.py            # 스케일링/차분/분할
 │   ├── anomaly_detection.py        # ForecastingAnomalyModel 파이프라인
 │   └── evaluation.py               # 지도/비지도 평가지표
+├── benchmark/                      # 공개 산업 데이터 벤치마크 (README.md, REPORT.md 참고)
+│   ├── metrics.py                  # 지표를 정의에서 직접 구현 (AUC-ROC, AUC-PR, P/R/F1, 이벤트 지표)
+│   ├── features.py                 # WAV → 50 ms 프레임 특징 시계열 (numpy FFT)
+│   ├── dataset.py                  # mt_cutting_dataset 로더, 절삭·채터 라벨
+│   └── run_benchmark.py            # 프로토콜 실행 → results/
+├── tests/                          # pytest: 지표 vs scikit-learn, 특징, 라벨 변환
 ├── sample_data/
 │   ├── _generate_sample.py
 │   ├── multivariate_sensor.csv
